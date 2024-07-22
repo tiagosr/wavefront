@@ -7,31 +7,14 @@ enum WaveformState {
 
 class WaveformPoint {
     state: WaveformState;
-    valueTo;
-    valueFrom;
+    value;
     time: number;
 
-    constructor(state:WaveformState, time:number, valueTo:unknown = undefined, valueFrom: unknown = undefined) {
+    constructor(state:WaveformState, time:number, value:unknown = undefined) {
         this.state = state;
-        this.valueTo = valueTo;
-        this.valueFrom = valueFrom;
+        this.value = value;
         this.time = time;
     }
-}
-
-class WaveTimeTreeNode {
-    time:number;
-    index:number;
-    earlier:WaveTimeTreeNode | null;
-    later:WaveTimeTreeNode | null;
-    constructor(time:number, index:number, earlier:WaveTimeTreeNode | null = null, later:WaveTimeTreeNode | null = null) {
-        this.time = time;
-        this.index = index;
-        this.earlier = earlier;
-        this.later = later;
-    }
-
-
 }
 
 class WaveTimeRange {
@@ -64,8 +47,8 @@ class SparseWaveform {
         }
         let earliest = 0;
         let latest = this.points.length;
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
+        let attempts = Math.floor(latest - earliest / 2);
+        while (attempts--) {
             const midpoint = Math.floor(latest - earliest / 2)
             if (this.points[midpoint].time > timeStart) {
                 earliest = midpoint;
@@ -76,6 +59,7 @@ class SparseWaveform {
                 return earliest;
             }
         }
+        return earliest;
     }
 
     findIndexRightAfterEnd(timeEnd:number): number {
@@ -84,8 +68,8 @@ class SparseWaveform {
         }
         let earliest = 0;
         let latest = this.points.length;
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
+        let attempts = Math.floor(latest - earliest / 2);
+        while (attempts--) {
             const midpoint = Math.floor(latest - earliest / 2)
             if (this.points[midpoint].time < timeEnd) {
                 earliest = midpoint;
@@ -93,9 +77,10 @@ class SparseWaveform {
                 latest = midpoint;
             }
             if (earliest <= (latest - 1) || this.points[earliest].time > timeEnd) {
-                return earliest;
+                return latest;
             }
         }
+        return latest;
     }
 
     findRange(timeStart:number, timeEnd:number): WaveTimeRange {
